@@ -65,14 +65,30 @@ def detect_opportunities(comment):
             return True
     return False
 
-# Titre de l'application avec HTML
+# Configuration du mode clair
+st.set_page_config(page_title="Analyse des Commentaires Clients", page_icon="🔍", layout="centered", initial_sidebar_state="auto")
+
+# CSS pour personnaliser l'apparence en mode clair
 st.markdown("""
     <style>
+    body {
+        background-color: white;
+    }
     .title {
-        font-size: 50px;
+        font-size: 40px;
         font-weight: bold;
         color: #4CAF50;
         text-align: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .upload-area {
+        border: 2px dashed #4CAF50;
+        padding: 20px;
+        text-align: center;
+    }
+    .result-area {
+        margin-top: 20px;
     }
     .header {
         font-size: 30px;
@@ -84,45 +100,72 @@ st.markdown("""
         color: #4CAF50;
     }
     </style>
-    <div class="title">Analyse des Commentaires Clients</div>
 """, unsafe_allow_html=True)
 
-# Importation du fichier CSV
+# Titre de l'application
+st.markdown('<div class="title">Analyse des Commentaires Clients</div>', unsafe_allow_html=True)
+
+# Section d'importation du fichier avec un style personnalisé
+st.markdown('<div class="upload-area">', unsafe_allow_html=True)
 uploaded_file = st.file_uploader("Choisissez un fichier CSV", type="csv")
+st.markdown('</div>', unsafe_allow_html=True)
 
-if uploaded_file is not None:
-    try:
-        df = pd.read_csv(uploaded_file)
-        st.markdown('<div class="success">Fichier chargé avec succès.</div>', unsafe_allow_html=True)
-    except Exception as e:
-        st.error(f"Erreur lors du chargement du fichier : {e}")
-        st.stop()
+# Définir les pages
+page = st.sidebar.selectbox("Navigation", ["Accueil", "Résultats"])
 
-    # Afficher les données brutes
-    st.markdown('<div class="header">Données Brutes: les commentaires</div>', unsafe_allow_html=True)
-    st.write(df.head(10000))
+if page == "Accueil":
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            st.markdown('<div class="success">Fichier chargé avec succès.</div>', unsafe_allow_html=True)
+            # Enregistrer les données dans une session pour les partager entre les pages
+            st.session_state['df'] = df
+        except Exception as e:
+            st.error(f"Erreur lors du chargement du fichier : {e}")
+            st.stop()
 
-    # Nettoyer les commentaires et extraire les mots essentiels
-    df['Mots_Essentiels'] = df['Commentaire'].astype(str).apply(clean_comment)
+elif page == "Résultats":
+    if 'df' in st.session_state:
+        df = st.session_state['df']
 
-    # Analyser les sentiments des commentaires
-    df['Sentiment'] = df['Mots_Essentiels'].apply(analyze_sentiment)
+        st.markdown('<div class="result-area">', unsafe_allow_html=True)
+        st.markdown('<div class="header">Données Brutes: les commentaires</div>', unsafe_allow_html=True)
+        st.write(df.head())
 
-    # Détecter les opportunités d'amélioration
-    df['Opportunité'] = df['Mots_Essentiels'].apply(detect_opportunities)
+        df['Mots_Essentiels'] = df['Commentaire'].astype(str).apply(clean_comment)
+        df['Sentiment'] = df['Mots_Essentiels'].apply(analyze_sentiment)
+        df['Opportunité'] = df['Mots_Essentiels'].apply(detect_opportunities)
 
-    # Séparer les opportunités en fonction du sentiment des commentaires
-    positive_opportunities = df[(df['Opportunité'] == True) & (df['Sentiment'] == 'positif')]
-    negative_neutral_opportunities = df[(df['Opportunité'] == True) & ((df['Sentiment'] == 'négatif') | (df['Sentiment'] == 'neutre'))]
+        positive_opportunities = df[(df['Opportunité'] == True) & (df['Sentiment'] == 'positif')]
+        negative_neutral_opportunities = df[(df['Opportunité'] == True) & ((df['Sentiment'] == 'négatif') | (df['Sentiment'] == 'neutre'))]
 
-    # Séparer les commentaires en bons et mauvais
-    good_comments = df[df['Sentiment'] == 'positif']
-    bad_comments = df[df['Sentiment'] == 'négatif']
+        good_comments = df[df['Sentiment'] == 'positif']
+        bad_comments = df[df['Sentiment'] == 'négatif']
 
-    # Extraction et comptage des mots-clés pour les bons commentaires
-    good_words = " ".join(good_comments['Mots_Essentiels']).split()
-    good_word_counts = Counter(good_words)
+        good_words = " ".join(good_comments['Mots_Essentiels']).split()
+        good_word_counts = Counter(good_words)
 
-    # Extraction et comptage des mots-clés pour les mauvais commentaires
-    bad_words = " ".join(bad_comments['Mots_Essentiels']).split()
-    bad_word_counts = Counter
+        bad_words = " ".join(bad_comments['Mots_Essentiels']).split()
+        bad_word_counts = Counter(bad_words)
+
+        st.markdown('<div class="header">Tableau des Commentaires Positifs</div>', unsafe_allow_html=True)
+        st.write(good_comments[['Commentaire', 'Sentiment', 'Mots_Essentiels']])
+
+        st.markdown('<div class="header">Nuage de Mots - Commentaires Positifs</div>', unsafe_allow_html=True)
+        good_wordcloud = WordCloud(width=800, height=400, background_color='white', colormap='viridis').generate_from_frequencies(good_word_counts)
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.imshow(good_wordcloud, interpolation='bilinear')
+        ax.axis('off')
+        st.pyplot(fig)
+
+        st.markdown('<div class="header">Tableau des Commentaires Négatifs</div>', unsafe_allow_html=True)
+        st.write(bad_comments[['Commentaire', 'Sentiment', 'Mots_Essentiels']])
+
+        st.markdown('<div class="header">Nuage de Mots - Commentaires Négatifs</div>', unsafe_allow_html=True)
+        bad_wordcloud = WordCloud(width=800, height=400, background_color='white', colormap='viridis').generate_from_frequencies(bad_word_counts)
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.imshow(bad_wordcloud, interpolation='bilinear')
+        ax.axis('off')
+        st.pyplot(fig)
+
+        st.markdown('<div class="header">Répartition des Sent
