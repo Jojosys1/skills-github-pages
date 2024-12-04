@@ -168,4 +168,4 @@ elif page == "Résultats":
         ax.axis('off')
         st.pyplot(fig)
 
-        st.markdown('<div class="header">Répartition des Sent
+        st.markdown('<div class="header">Répartition des Sent</div>', unsafe_allow_html=True)
