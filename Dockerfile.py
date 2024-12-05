@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 8501
 
 # Définir la commande de démarrage par défaut
-CMD ["streamlit", "run", "site_web.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "site3.py", "--server.port=8501", "--server.address=0.0.0.0"]
