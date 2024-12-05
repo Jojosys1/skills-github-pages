@@ -69,7 +69,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Titre de l'application
-st.markdown('<div class="title"><i class="fas fa-chart-line"></i> Analyse des Commentaires Clients</div>', unsafe_allow_html=True)
+st.markdown('<div class="title"><i class="fas fa-chart-line"></i> Analyse des Commentaires Clients by AK GUERINDA </div>', unsafe_allow_html=True)
 st.markdown('<div class="description"><i class="fas fa-info-circle"></i> Téléchargez un fichier CSV contenant les commentaires des clients pour une analyse approfondie.</div>', unsafe_allow_html=True)
 
 # Liste de stopwords personnalisés (y compris les articles et pronoms)
