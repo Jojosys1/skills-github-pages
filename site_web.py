@@ -69,7 +69,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Titre de l'application
-st.markdown('<div class="title"><i class="fas fa-chart-line"></i> Analyse des Commentaires Clients</div>', unsafe_allow_html=True)
+st.markdown('<div class="title"><i class="fas fa-chart-line"></i> Analyse des Commentaires Clients by AK GUERINDA </div>', unsafe_allow_html=True)
 st.markdown('<div class="description"><i class="fas fa-info-circle"></i> Téléchargez un fichier CSV contenant les commentaires des clients pour une analyse approfondie.</div>', unsafe_allow_html=True)
 
 # Liste de stopwords personnalisés (y compris les articles et pronoms)
@@ -168,6 +168,9 @@ elif page == "Résultats":
     # Extraction et comptage des mots-clés pour les mauvais commentaires
     bad_words = " ".join(bad_comments['Mots_Essentiels']).split()
     bad_word_counts = Counter(bad_words)
+    # Détecter les opportunités d'amélioration
+    df['Opportunité'] = df['Mots_Essentiels'].apply(detect_opportunities)
+    opportunities = df[df['Opportunité']]
     # Sous-pages pour "Résultats"
     subpage = st.sidebar.selectbox("infos traitées",["Données Brutes", "Analyse des Sentiments", "Opportunités d'Amélioration"])
 
@@ -253,13 +256,59 @@ elif page == "Résultats":
                             plt.bar(*zip(*word_counts.most_common(10)))
                             st.pyplot(fig)    
             
-        elif subpage == "Opportunités d'Amélioration": 
-            st.sidebar.markdown('<i class="fas fa-lightbulb icon-opportunities"></i>', unsafe_allow_html=True) 
-            st.markdown('<h2><i class="fas fa-lightbulb icon"></i> Opportunités d\'Amélioration</h2>', unsafe_allow_html=True) 
-            st.write(df[df['Opportunité'] == True])
+
+        elif subpage == "Opportunités d'Amélioration":
+            # Ajout d'une icône et d'un style pour la sous-page "Opportunités d'Amélioration"
+            st.sidebar.markdown('<i class="fas fa-lightbulb icon-opportunities"></i>', unsafe_allow_html=True)
+            
+            # Filtrer les opportunités avec un sentiment positif
             positive_opportunities = df[(df['Opportunité'] == True) & (df['Sentiment'] == 'positif')]
-            negative_neutral_opportunities = df[(df['Opportunité'] == True) & ((df['Sentiment'] == 'négatif') 
-            (df['Sentiment'] == 'neutre'))]
-            st.markdown('<div class="header">Suggestions ou améliorations</div>', unsafe_allow_html=True) 
-            st.write(negative_neutral_opportunities[['Commentaire', 'Sentiment', 'Mots_Essentiels']])   
+            
+            # Filtrer les opportunités avec un sentiment négatif ou neutre
+            negative_neutral_opportunities = df[(df['Opportunité'] == True) & 
+                                                ((df['Sentiment'] == 'négatif') | (df['Sentiment'] == 'neutre'))]
+            
+            # Titre pour la section des opportunités d'amélioration
+            st.markdown('<div class="header">Suggestions ou améliorations</div>', unsafe_allow_html=True)
+            
+            # Affichage des opportunités avec un sentiment négatif ou neutre
+            st.write("**Suggestions issues des commentaires négatifs ou neutres :**")
+            st.write(negative_neutral_opportunities[['Commentaire', 'Sentiment', 'Mots_Essentiels']])
+
+            # (Optionnel) Affichage des opportunités avec un sentiment positif
+            st.write("**Opportunités identifiées parmi les commentaires positifs :**")
+            st.write(positive_opportunities[['Commentaire', 'Sentiment', 'Mots_Essentiels']])
+    
+            # Opportunités positives
+            positive_opportunities = df[(df['Opportunité'] == True) & (df['Sentiment'] == 'positif')]
+    
+            # Opportunités négatives ou neutres
+            negative_neutral_opportunities = df[(df['Opportunité'] == True) & 
+                                        ((df['Sentiment'] == 'négatif') | (df['Sentiment'] == 'neutre'))]
+    
+            st.markdown('<div class="header">Suggestions ou améliorations</div>', unsafe_allow_html=True)
+            st.write(negative_neutral_opportunities[['Commentaire', 'Sentiment', 'Mots_Essentiels']])
+
+            
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
             
